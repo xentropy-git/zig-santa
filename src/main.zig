@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const tile = @import("tile.zig");
 const map = @import("map.zig");
 const mob = @import("mob.zig");
+const sprite = @import("sprite.zig");
 const Vect2 = @import("vect2.zig").Vect2;
 const ZeroVect2 = @import("vect2.zig").ZeroVect2;
 
@@ -45,7 +46,6 @@ fn drawMap(
                 .width = drawSize,
                 .height = drawSize,
             };
-            const joinFlag = data.getJoinFlag(@intCast(x), @intCast(y));
 
             switch (pos.tyleType) {
                 tile.TyleType.empty => {},
@@ -61,13 +61,6 @@ fn drawMap(
                         .{ .x = 0, .y = 0 },
                         0.0,
                         rl.Color.white,
-                    );
-                    rl.drawText(
-                        rl.textFormat("%02i", .{joinFlag}),
-                        @intFromFloat(pixelX + 8),
-                        @intFromFloat(pixelY + 8),
-                        8,
-                        rl.Color.black,
                     );
                 },
                 tile.TyleType.floor => {
@@ -128,19 +121,82 @@ pub fn main() anyerror!void {
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // load textures
-    const dungeon = rl.loadTexture("resources/santa.png");
-
-    const santaSrcRect = rl.Rectangle{
-        .x = 0,
-        .y = 4 * 16,
-        .width = 16,
-        .height = 16,
-    };
+    const santaSprites = rl.loadTexture("resources/santa.png");
 
     var santaMob: mob.Mob = mob.Mob.init(Vect2.init(12, 2), 100.0);
     santaMob.acc = Vect2.init(0.0, 24);
 
-    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+    const spriteTiles: [1]sprite.SpriteTile = .{
+        .{ .x = 0, .y = 4 },
+    };
+
+    const spriteWalkTiles: [4]sprite.SpriteTile = .{
+        .{ .x = 0, .y = 4 },
+        .{ .x = 1, .y = 4 },
+        .{ .x = 2, .y = 4 },
+        .{ .x = 3, .y = 4 },
+    };
+
+    const jumpTiles: [1]sprite.SpriteTile = .{
+        .{ .x = 4, .y = 4 },
+    };
+
+    const fallTiles: [1]sprite.SpriteTile = .{
+        .{ .x = 5, .y = 4 },
+    };
+
+    const jetTiles: [2]sprite.SpriteTile = .{
+        .{ .x = 0, .y = 5 },
+        .{ .x = 1, .y = 5 },
+    };
+
+    // make spritesheet
+    const santaSpec: [5]sprite.SpriteSpec = .{
+        .{
+            .state = sprite.SpriteState.idle,
+            .maxFrames = 1,
+            .repeat = true,
+            .fps = 1.0,
+            .frames = &spriteTiles,
+        },
+        .{
+            .state = sprite.SpriteState.walk,
+            .maxFrames = 4,
+            .repeat = true,
+            .fps = 4.0,
+            .frames = &spriteWalkTiles,
+        },
+        .{
+            .state = sprite.SpriteState.jump,
+            .maxFrames = 1,
+            .repeat = false,
+            .fps = 1.0,
+            .frames = &jumpTiles,
+        },
+        .{
+            .state = sprite.SpriteState.fall,
+            .maxFrames = 1,
+            .repeat = false,
+            .fps = 1.0,
+            .frames = &fallTiles,
+        },
+        .{
+            .state = sprite.SpriteState.jet,
+            .maxFrames = 2,
+            .repeat = true,
+            .fps = 4.0,
+            .frames = &jetTiles,
+        },
+    };
+
+    var santaSprite = sprite.Sprite.init(
+        sprite.SpriteState.idle,
+        sprite.SpriteDirection.right,
+        0,
+        &santaSpec,
+        santaSprites,
+    );
+
     //-------------------------------------------------------------------------
 
     // Main game loop
@@ -169,12 +225,12 @@ pub fn main() anyerror!void {
             }
         }
 
+        var flying = false;
         var inputVector = Vect2.init(0.0, 0.0);
         if (rl.isKeyDown(rl.KeyboardKey.key_w)) {
             if (santaMob.onGround) {
                 santaMob.vel.y = -12.0;
             }
-            //inputVector.y = -1.0;
         }
         if (rl.isKeyDown(rl.KeyboardKey.key_s)) {
             inputVector.y = 1.0;
@@ -183,11 +239,19 @@ pub fn main() anyerror!void {
             if (santaMob.onGround) {
                 inputVector.x = -1.0;
             } else santaMob.vel.x -= 10.0 * deltaTime;
+
+            santaSprite.direction = sprite.SpriteDirection.left;
         }
         if (rl.isKeyDown(rl.KeyboardKey.key_d)) {
             if (santaMob.onGround) {
                 inputVector.x = 1.0;
             } else santaMob.vel.x += 10.0 * deltaTime;
+
+            santaSprite.direction = sprite.SpriteDirection.right;
+        }
+        if (rl.isKeyDown(rl.KeyboardKey.key_space)) {
+            santaMob.vel.y = -4.0;
+            flying = true;
         }
         inputVector = inputVector.normalized();
         if (inputVector.magnitude() > 0.0) {
@@ -213,24 +277,24 @@ pub fn main() anyerror!void {
 
         rl.clearBackground(bgColor);
 
-        try drawMap(&mapData, dungeon, cameraX, cameraY);
+        try drawMap(&mapData, santaSprites, cameraX, cameraY);
 
         // draw santa
-        const santaDestRect = rl.Rectangle{
-            .x = santaMob.pos.x * 16 * 4,
-            .y = santaMob.pos.y * 16 * 4,
-            .width = 16 * 4,
-            .height = 16 * 4,
-        };
-
-        rl.drawTexturePro(
-            dungeon,
-            santaSrcRect,
-            santaDestRect,
-            .{ .x = 0, .y = 0 },
-            0.0,
-            rl.Color.white,
-        );
+        if (santaMob.vel.x != 0.0 and santaMob.onGround) {
+            santaSprite.setState(sprite.SpriteState.walk);
+        } else {
+            if (flying) {
+                santaSprite.setState(sprite.SpriteState.jet);
+            } else if (santaMob.vel.y < 0.0) {
+                santaSprite.setState(sprite.SpriteState.jump);
+            } else if (santaMob.vel.y > 0.0) {
+                santaSprite.setState(sprite.SpriteState.fall);
+            } else {
+                santaSprite.setState(sprite.SpriteState.idle);
+            }
+        }
+        santaSprite.update(deltaTime);
+        santaSprite.draw(santaMob.pos);
         //---------------------------------------------------------------------
     }
 }
