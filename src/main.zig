@@ -128,8 +128,13 @@ pub fn main() anyerror!void {
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // load textures
-    const santaSprites = rl.loadTexture("resources/santa.png");
-    const titleScreen = rl.loadTexture("resources/title.png");
+    const santaEmbeddedFile = @embedFile("./resources/santa.png");
+    const titleEmbeddedFile = @embedFile("./resources/title.png");
+    const santaImage = rl.loadImageFromMemory(".png", santaEmbeddedFile);
+    const titleImage = rl.loadImageFromMemory(".png", titleEmbeddedFile);
+
+    const santaSprites = rl.loadTextureFromImage(santaImage);
+    const titleScreen = rl.loadTextureFromImage(titleImage);
 
     var santaMob: mob.Mob = mob.Mob.init(Vect2.init(12, 2), 100.0);
     santaMob.acc = Vect2.init(0.0, 24);
