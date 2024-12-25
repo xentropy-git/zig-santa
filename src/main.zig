@@ -12,8 +12,8 @@ const scaleFactor = 4;
 const mapWidth = 20;
 const mapHeight = 15;
 
-const screenWidth = tileSize * scaleFactor * mapWidth;
-const screenHeight = tileSize * scaleFactor * mapHeight;
+const screenWidth = tileSize * scaleFactor * mapWidth; // 800
+const screenHeight = tileSize * scaleFactor * mapHeight; // 600
 
 fn drawMap(
     data: *map.MapData,
@@ -85,6 +85,11 @@ fn drawMap(
     }
 }
 
+const gameState = enum {
+    titleScreen,
+    game,
+};
+
 pub fn main() anyerror!void {
     // Initialization
     //-------------------------------------------------------------------------
@@ -92,6 +97,8 @@ pub fn main() anyerror!void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
+
+    var state = gameState.titleScreen;
 
     var mapData = try map.MapData.init(allocator, mapWidth, mapHeight);
     defer mapData.free(allocator);
@@ -122,6 +129,7 @@ pub fn main() anyerror!void {
 
     // load textures
     const santaSprites = rl.loadTexture("resources/santa.png");
+    const titleScreen = rl.loadTexture("resources/title.png");
 
     var santaMob: mob.Mob = mob.Mob.init(Vect2.init(12, 2), 100.0);
     santaMob.acc = Vect2.init(0.0, 24);
@@ -201,6 +209,34 @@ pub fn main() anyerror!void {
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+        if (state == gameState.titleScreen) {
+            rl.beginDrawing();
+            defer rl.endDrawing();
+            rl.clearBackground(rl.Color.white);
+            rl.drawTexturePro(
+                titleScreen,
+                rl.Rectangle{
+                    .x = 0,
+                    .y = 0,
+                    .width = 800,
+                    .height = 600,
+                },
+                rl.Rectangle{
+                    .x = 0,
+                    .y = 0,
+                    .width = @floatFromInt(screenWidth),
+                    .height = @floatFromInt(screenHeight),
+                },
+                rl.Vector2.init(0, 0),
+                0.0,
+                rl.Color.white,
+            );
+            if (rl.isKeyPressed(rl.KeyboardKey.key_enter)) {
+                state = gameState.game;
+            }
+            continue;
+        }
+
         // Update
         //---------------------------------------------------------------------
         // TODO: Update your variables here
