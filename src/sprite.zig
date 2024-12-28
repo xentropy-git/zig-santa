@@ -1,6 +1,6 @@
 const std = @import("std");
 const rl = @import("raylib");
-const Vector2 = @import("vect2.zig").Vect2;
+const Vector2 = rl.Vector2;
 
 pub const SpriteState = enum {
     idle,
