@@ -5,6 +5,7 @@ const gameservice = @import("services/game.zig");
 const tile = @import("models/tile.zig");
 const mob = @import("models/mob.zig");
 const npcfactory = @import("services/npcfactory.zig");
+const mapdef = @import("models/mapdef.zig");
 
 const tileSize = 16;
 const scaleFactor = 4;
@@ -90,6 +91,25 @@ pub fn main() anyerror!void {
         if (rl.isKeyPressed(rl.KeyboardKey.key_f1)) {
             // Toggle dev mode
             try game.ToggleDevMode();
+        }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_f2)) {
+            // Save map to file
+            var m = try mapdef.Map.init(allocator, &game);
+            defer m.deinit(allocator);
+            const json = try m.writeJson(allocator);
+            const file = try std.fs.cwd().createFile("map.json", .{});
+            defer file.close();
+            try file.writeAll(json);
+        }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_f3)) {
+            // Load map from file
+            const file = try std.fs.cwd().openFile("map.json", .{});
+            defer file.close();
+            const json = try file.readToEndAlloc(allocator, 100_000);
+            defer allocator.free(json);
+            try mapdef.Map.loadJsonToGame(allocator, json, &game);
         }
 
         if (rl.isGamepadAvailable(0)) {}
