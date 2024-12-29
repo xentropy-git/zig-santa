@@ -3,6 +3,8 @@ const rl = @import("raylib");
 const sprite = @import("sprite.zig");
 const gameservice = @import("services/game.zig");
 const tile = @import("models/tile.zig");
+const mob = @import("models/mob.zig");
+const npcfactory = @import("services/npcfactory.zig");
 
 const tileSize = 16;
 const scaleFactor = 4;
@@ -52,15 +54,13 @@ pub fn main() anyerror!void {
     std.log.info("Loading textures", .{});
     game.renderer.loadTextures(&titleTexture, &gameTexture);
 
-    // var santaSprite = sprite.Sprite.init(
-    //     sprite.SpriteState.idle,
-    //     sprite.SpriteDirection.right,
-    //     0,
-    //     &santaSpec,
-    //     santaSprites,
-    // );
+    try game.AddNpc(
+        npcfactory.MakeJumper(5, 5),
+    );
 
-    //-------------------------------------------------------------------------
+    try game.AddNpc(
+        npcfactory.MakeCrawler(10, 10),
+    );
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
@@ -86,6 +86,8 @@ pub fn main() anyerror!void {
         if (rl.isKeyDown(rl.KeyboardKey.key_space)) {
             game.HandleKeyPressed(gameservice.GameKey.player_1_jet, deltaTime);
         }
+
+        if (rl.isGamepadAvailable(0)) {}
 
         game.Update(deltaTime);
         try game.Render();

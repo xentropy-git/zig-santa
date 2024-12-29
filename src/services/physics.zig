@@ -1,3 +1,4 @@
+const std = @import("std");
 const Mob = @import("../models/mob.zig").Mob;
 const Map = @import("../models/map.zig").Map;
 const Vector2 = @import("raylib").Vector2;
@@ -70,7 +71,6 @@ pub const Physics = struct {
             return;
         }
         const newPos = Vector2.init(mob.pos.x, mob.pos.y + mob.vel.y * deltaTime);
-
         const collision = self.test4Corners(newPos, map);
 
         if (!collision) {

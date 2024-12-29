@@ -39,8 +39,6 @@ pub const Renderer = struct {
     }
 
     pub fn drawTitleScreen(self: *Renderer) !void {
-        rl.beginDrawing();
-        defer rl.endDrawing();
         if (self.titleTexture) |texture| {
             rl.clearBackground(rl.Color.white);
             rl.drawTexturePro(

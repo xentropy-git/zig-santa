@@ -7,6 +7,7 @@ const player = @import("../models/player.zig");
 const physics = @import("physics.zig");
 const Mob = @import("../models/mob.zig").Mob;
 const SpriteDirection = @import("../sprite.zig").SpriteDirection;
+const ai = @import("ai.zig");
 
 pub const gameState = enum {
     titleScreen,
@@ -30,6 +31,7 @@ pub const Game = struct {
     renderer: renderer.Renderer,
     player_1: player.Player,
     physics: physics.Physics,
+    npcs: std.ArrayList(Mob),
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -66,8 +68,9 @@ pub const Game = struct {
                 @floatFromInt(mapHeight * 16 * 4),
                 16,
             ),
-            .player_1 = player.Player.init(rl.Vector2.init(12, 2), 100),
+            .player_1 = player.Player.init(rl.Vector2.init(12, 2), 100, "player1"),
             .physics = .{ .gravity = 24 },
+            .npcs = std.ArrayList(Mob).init(allocator),
         };
     }
 
@@ -107,6 +110,10 @@ pub const Game = struct {
         }
     }
 
+    pub fn AddNpc(self: *Game, mob: Mob) !void {
+        try self.npcs.append(mob);
+    }
+
     pub fn Refresh(self: *Game) void {
         // reset input vectors
         self.player_1.input_vector = rl.Vector2.zero();
@@ -135,26 +142,45 @@ pub const Game = struct {
 
         self.physics.moveAndCollide(&self.player_1.mob, deltaTime, self.map);
         self.player_1.mob.updateSprite(deltaTime);
+
+        for (0..self.npcs.items.len) |i| {
+            const npc_ptr = @constCast(&self.npcs.items[i]);
+            ai.updateMob(npc_ptr, &self.player_1, deltaTime);
+            std.debug.print("NPC: {d} {d}\n", .{ npc_ptr.pos.x, npc_ptr.pos.y });
+            self.physics.moveAndCollide(npc_ptr, deltaTime, self.map);
+
+            if (npc_ptr.vel.x < 0.0) {
+                npc_ptr.sprite.direction = SpriteDirection.left;
+            } else {
+                npc_ptr.sprite.direction = SpriteDirection.right;
+            }
+            npc_ptr.updateSprite(deltaTime);
+        }
     }
 
     pub fn Render(self: *Game) !void {
+        self.renderer.beginDraw();
+        defer self.renderer.endDraw();
         switch (self.state) {
             gameState.titleScreen => {
                 try self.renderer.drawTitleScreen();
             },
             gameState.game => {
-                self.renderer.beginDraw();
-                defer self.renderer.endDraw();
-
                 try self.renderer.drawGameScreen(self.map);
 
                 self.renderer.drawMob(&self.player_1.mob);
+
+                for (self.npcs.items) |npc| {
+                    // coerce to const pointer
+                    self.renderer.drawMob(@constCast(&npc));
+                }
             },
         }
     }
 
     pub fn deinit(self: *Game, allocator: std.mem.Allocator) void {
         self.map.deinit(allocator);
+        self.npcs.deinit();
         allocator.destroy(self.map);
     }
 };

@@ -74,6 +74,13 @@ pub const Sprite = struct {
             }
         }
 
+        // return default idle state
+        for (self.specs) |spec| {
+            if (spec.state == SpriteState.idle) {
+                return &spec;
+            }
+        }
+
         return null;
     }
     pub fn getSrcRect(self: *Sprite) rl.Rectangle {

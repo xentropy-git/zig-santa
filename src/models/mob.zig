@@ -1,5 +1,6 @@
 const rl = @import("raylib");
 const sprite = @import("../sprite.zig");
+const AiType = @import("aitype.zig").AiType;
 
 pub const Mob = struct {
     pos: rl.Vector2,
@@ -9,11 +10,15 @@ pub const Mob = struct {
     on_ground: bool,
     sprite: sprite.Sprite,
     flying: bool,
+    name: []const u8,
+    ai_type: AiType,
 
     pub fn init(
         pos: rl.Vector2,
         max_speed: f32,
         mob_sprite: sprite.Sprite,
+        name: []const u8,
+        ai_type: AiType,
     ) Mob {
         return Mob{
             .pos = pos,
@@ -23,6 +28,8 @@ pub const Mob = struct {
             .on_ground = false,
             .sprite = mob_sprite,
             .flying = false,
+            .name = name,
+            .ai_type = ai_type,
         };
     }
 
