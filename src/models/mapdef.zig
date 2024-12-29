@@ -1,6 +1,7 @@
 const std = @import("std");
 const gameService = @import("../services/game.zig");
 const TileType = @import("../models/tile.zig").TileType;
+const npcfactory = @import("../services/npcfactory.zig");
 
 pub const FeatureType = enum {
     None,
@@ -34,9 +35,25 @@ pub const Map = struct {
 
         const m = map.value;
 
+        game.npcs.clearAndFree();
+
         for (0..m.height) |y| {
             for (0..m.width) |x| {
                 game.map.data[x][y].tile_type = m.data[x][y].tile_type;
+
+                const f_x: f32 = @floatFromInt(x);
+                const f_y: f32 = @floatFromInt(y);
+
+                switch (m.data[x][y].feature_type) {
+                    FeatureType.None => {},
+                    FeatureType.Jumper => {
+                        try game.npcs.append(npcfactory.MakeJumper(f_x, f_y));
+                    },
+                    FeatureType.Crawler => {
+                        try game.npcs.append(npcfactory.MakeCrawler(f_x, f_y));
+                    },
+                    FeatureType.Player => {},
+                }
             }
         }
     }
@@ -61,9 +78,11 @@ pub const Map = struct {
             const y: u32 = @intFromFloat(npc.pos.y);
 
             if (std.mem.eql(u8, npc.name, "player")) {
-                map[y][x].feature_type = FeatureType.Jumper;
+                map[y][x].feature_type = FeatureType.Player;
             } else if (std.mem.eql(u8, npc.name, "crawler")) {
                 map[y][x].feature_type = FeatureType.Crawler;
+            } else if (std.mem.eql(u8, npc.name, "jumper")) {
+                map[y][x].feature_type = FeatureType.Jumper;
             }
         }
 
