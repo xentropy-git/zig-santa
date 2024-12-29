@@ -50,7 +50,6 @@ pub const Sprite = struct {
     direction: SpriteDirection,
     frame: u64,
     specs: []const SpriteSpec,
-    texture: rl.Texture2D,
     lastFrameTime: f64,
 
     pub fn init(
@@ -58,14 +57,12 @@ pub const Sprite = struct {
         direction: SpriteDirection,
         frame: u64,
         specs: []const SpriteSpec,
-        texture: rl.Texture2D,
     ) Sprite {
         return Sprite{
             .state = state,
             .direction = direction,
             .frame = frame,
             .specs = specs,
-            .texture = texture,
             .lastFrameTime = 0.0,
         };
     }
