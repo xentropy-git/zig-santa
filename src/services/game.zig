@@ -32,6 +32,7 @@ pub const Game = struct {
     player_1: player.Player,
     physics: physics.Physics,
     npcs: std.ArrayList(Mob),
+    dev_mode: bool = true,
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -71,7 +72,34 @@ pub const Game = struct {
             .player_1 = player.Player.init(rl.Vector2.init(12, 2), 100, "player1"),
             .physics = .{ .gravity = 24 },
             .npcs = std.ArrayList(Mob).init(allocator),
+            .dev_mode = true,
         };
+    }
+
+    pub fn CacheNpcs(self: *Game) !void {
+        for (0..self.npcs.items.len) |i| {
+            const npc = &self.npcs.items[i];
+            npc.start_pos = npc.pos;
+        }
+    }
+
+    pub fn RestoreNpcs(self: *Game) void {
+        for (0..self.npcs.items.len) |i| {
+            const npc = &self.npcs.items[i];
+            npc.pos = npc.start_pos;
+            npc.vel = rl.Vector2.zero();
+            npc.acc = rl.Vector2.zero();
+        }
+    }
+
+    pub fn ToggleDevMode(self: *Game) !void {
+        if (self.dev_mode) {
+            try self.CacheNpcs();
+            self.dev_mode = false;
+        } else {
+            self.dev_mode = true;
+            self.RestoreNpcs();
+        }
     }
 
     pub fn HandleKeyPressed(self: *Game, key: GameKey, deltaTime: f32) void {
@@ -142,6 +170,10 @@ pub const Game = struct {
 
         self.physics.moveAndCollide(&self.player_1.mob, deltaTime, self.map);
         self.player_1.mob.updateSprite(deltaTime);
+
+        if (self.dev_mode) {
+            return;
+        }
 
         for (0..self.npcs.items.len) |i| {
             const npc_ptr = @constCast(&self.npcs.items[i]);

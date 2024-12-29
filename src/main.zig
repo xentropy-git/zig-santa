@@ -87,6 +87,11 @@ pub fn main() anyerror!void {
             game.HandleKeyPressed(gameservice.GameKey.player_1_jet, deltaTime);
         }
 
+        if (rl.isKeyPressed(rl.KeyboardKey.key_f1)) {
+            // Toggle dev mode
+            try game.ToggleDevMode();
+        }
+
         if (rl.isGamepadAvailable(0)) {}
 
         game.Update(deltaTime);

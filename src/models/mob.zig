@@ -6,6 +6,7 @@ pub const Mob = struct {
     pos: rl.Vector2,
     vel: rl.Vector2,
     acc: rl.Vector2,
+    start_pos: rl.Vector2,
     max_speed: f32,
     on_ground: bool,
     sprite: sprite.Sprite,
@@ -22,6 +23,7 @@ pub const Mob = struct {
     ) Mob {
         return Mob{
             .pos = pos,
+            .start_pos = pos,
             .vel = rl.Vector2.zero(),
             .acc = rl.Vector2.zero(),
             .max_speed = max_speed,
