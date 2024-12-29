@@ -98,6 +98,7 @@ pub fn main() anyerror!void {
             var m = try mapdef.Map.init(allocator, &game);
             defer m.deinit(allocator);
             const json = try m.writeJson(allocator);
+            defer allocator.free(json);
             const file = try std.fs.cwd().createFile("map.json", .{});
             defer file.close();
             try file.writeAll(json);
