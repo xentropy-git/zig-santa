@@ -142,6 +142,16 @@ pub const Game = struct {
         try self.npcs.append(mob);
     }
 
+    pub fn RemoveNpc(self: *Game, x: f32, y: f32) void {
+        for (0..self.npcs.items.len) |i| {
+            const npc = &self.npcs.items[i];
+            if (@floor(npc.pos.x) == @floor(x) and @floor(npc.pos.y) == @floor(y)) {
+                _ = self.npcs.orderedRemove(i);
+                return;
+            }
+        }
+    }
+
     pub fn Refresh(self: *Game) void {
         // reset input vectors
         self.player_1.input_vector = rl.Vector2.zero();

@@ -78,11 +78,11 @@ pub const Map = struct {
             const y: u32 = @intFromFloat(npc.pos.y);
 
             if (std.mem.eql(u8, npc.name, "player")) {
-                map[y][x].feature_type = FeatureType.Player;
+                map[x][y].feature_type = FeatureType.Player;
             } else if (std.mem.eql(u8, npc.name, "crawler")) {
-                map[y][x].feature_type = FeatureType.Crawler;
+                map[x][y].feature_type = FeatureType.Crawler;
             } else if (std.mem.eql(u8, npc.name, "jumper")) {
-                map[y][x].feature_type = FeatureType.Jumper;
+                map[x][y].feature_type = FeatureType.Jumper;
             }
         }
 

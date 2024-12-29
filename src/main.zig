@@ -15,6 +15,11 @@ const mapHeight = 15;
 const screenWidth = tileSize * scaleFactor * mapWidth; // 800
 const screenHeight = tileSize * scaleFactor * mapHeight; // 600
 
+pub const PlacementType = enum {
+    Wall,
+    Jumper,
+    Crawler,
+};
 pub fn main() anyerror!void {
     // Initialization
     //-------------------------------------------------------------------------
@@ -62,6 +67,8 @@ pub fn main() anyerror!void {
     try game.AddNpc(
         npcfactory.MakeCrawler(10, 10),
     );
+
+    var placementType = PlacementType.Wall;
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
@@ -120,6 +127,15 @@ pub fn main() anyerror!void {
 
         // God mode
 
+        if (rl.isKeyPressed(rl.KeyboardKey.key_one)) {
+            placementType = PlacementType.Wall;
+        }
+        if (rl.isKeyPressed(rl.KeyboardKey.key_two)) {
+            placementType = PlacementType.Jumper;
+        }
+        if (rl.isKeyPressed(rl.KeyboardKey.key_three)) {
+            placementType = PlacementType.Crawler;
+        }
         //// on mouse press
         if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
             const mousePos = rl.getMousePosition();
@@ -127,12 +143,21 @@ pub fn main() anyerror!void {
             const f_y: f32 = mousePos.y / (tileSize * scaleFactor);
             const x: u32 = @intFromFloat(f_x);
             const y: u32 = @intFromFloat(f_y);
+            game.RemoveNpc(f_x, f_y);
             if (x >= 0 and x < mapWidth and y >= 0 and y < mapHeight) {
-                var pos = &game.map.data[x][y];
-                if (pos.tile_type == tile.TileType.floor) {
-                    pos.tile_type = tile.TileType.wall;
-                } else {
-                    pos.tile_type = tile.TileType.floor;
+                if (placementType == PlacementType.Wall) {
+                    var pos = &game.map.data[x][y];
+                    if (pos.tile_type == tile.TileType.floor) {
+                        pos.tile_type = tile.TileType.wall;
+                    } else {
+                        pos.tile_type = tile.TileType.floor;
+                    }
+                }
+                if (placementType == PlacementType.Jumper) {
+                    try game.AddNpc(npcfactory.MakeJumper(@floor(f_x), @floor(f_y)));
+                }
+                if (placementType == PlacementType.Crawler) {
+                    try game.AddNpc(npcfactory.MakeCrawler(@floor(f_x), @floor(f_y)));
                 }
             }
         }
