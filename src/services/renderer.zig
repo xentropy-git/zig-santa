@@ -139,6 +139,38 @@ pub const Renderer = struct {
                         TileType.floor => {
                             // noop
                         },
+                        TileType.tree_top => {
+                            const srcRect = rl.Rectangle{
+                                .x = 0,
+                                .y = 11 * 16,
+                                .width = 16,
+                                .height = 16,
+                            };
+                            rl.drawTexturePro(
+                                texture.*,
+                                srcRect,
+                                destRect,
+                                .{ .x = 0, .y = 0 },
+                                0.0,
+                                rl.Color.white,
+                            );
+                        },
+                        TileType.tree_bottom => {
+                            const srcRect = rl.Rectangle{
+                                .x = 0,
+                                .y = 12 * 16,
+                                .width = 16,
+                                .height = 16,
+                            };
+                            rl.drawTexturePro(
+                                texture.*,
+                                srcRect,
+                                destRect,
+                                .{ .x = 0, .y = 0 },
+                                0.0,
+                                rl.Color.white,
+                            );
+                        },
                     }
                 }
             }

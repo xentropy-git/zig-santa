@@ -17,6 +17,7 @@ const screenHeight = tileSize * scaleFactor * mapHeight; // 600
 
 pub const PlacementType = enum {
     Wall,
+    Tree,
     Jumper,
     Crawler,
 };
@@ -136,6 +137,10 @@ pub fn main() anyerror!void {
         if (rl.isKeyPressed(rl.KeyboardKey.key_three)) {
             placementType = PlacementType.Crawler;
         }
+        if (rl.isKeyPressed(rl.KeyboardKey.key_four)) {
+            placementType = PlacementType.Tree;
+        }
+
         //// on mouse press
         if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
             const mousePos = rl.getMousePosition();
@@ -151,6 +156,23 @@ pub fn main() anyerror!void {
                         pos.tile_type = tile.TileType.wall;
                     } else {
                         pos.tile_type = tile.TileType.floor;
+                    }
+                }
+
+                if (placementType == PlacementType.Tree) {
+                    var pos = &game.map.data[x][y];
+                    if (pos.tile_type == tile.TileType.tree_bottom or pos.tile_type == tile.TileType.tree_top) {
+                        pos.tile_type = tile.TileType.floor;
+                    } else {
+                        pos.tile_type = tile.TileType.tree_bottom;
+
+                        // check tree top
+                        if (y > 0) {
+                            pos = &game.map.data[x][y - 1];
+                            if (pos.tile_type == tile.TileType.floor) {
+                                pos.tile_type = tile.TileType.tree_top;
+                            }
+                        }
                     }
                 }
                 if (placementType == PlacementType.Jumper) {
