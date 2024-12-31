@@ -171,6 +171,22 @@ pub const Renderer = struct {
                                 rl.Color.white,
                             );
                         },
+                        TileType.snowman => {
+                            const srcRect = rl.Rectangle{
+                                .x = 0,
+                                .y = 3 * 16,
+                                .width = 16,
+                                .height = 16,
+                            };
+                            rl.drawTexturePro(
+                                texture.*,
+                                srcRect,
+                                destRect,
+                                .{ .x = 0, .y = 0 },
+                                0.0,
+                                rl.Color.white,
+                            );
+                        },
                     }
                 }
             }

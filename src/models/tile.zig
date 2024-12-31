@@ -4,6 +4,7 @@ pub const TileType = enum {
     floor,
     tree_bottom,
     tree_top,
+    snowman,
 };
 
 pub const Tile = struct {
